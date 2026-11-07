@@ -33,6 +33,7 @@ export default defineConfig({
         'fire-popup.spec.ts',
         'chase-camera.spec.ts',
         'phone-layouts.spec.ts',
+        'location-alert.spec.ts',
       ],
       use: { baseURL: DEV_URL },
     },
