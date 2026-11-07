@@ -100,6 +100,26 @@ shows stale badge without breaking anything.
 **Done when:** production deploy on `fireflybc.kcaparas.dev` passes every row in behaviour §10 that can
 be reproduced manually, Lighthouse PWA installable, CSP enforced with no console violations.
 
+## Phase 7 — Portfolio finish (ADR 026)
+
+Goal: present the finished app. No new features.
+
+1. `README.md` presents the project: what it is, the live link, the engineering, the decisions,
+   how to run it, and an honest scope statement.
+2. `docs/verification.md` lists every row of behaviour §10 with the test that covers it, or a
+   manual check. The owner runs the manual checks on production and fills in the date and result.
+3. The owner accepts or rejects ADRs 019–026.
+4. CSP: deploy a preview with `Content-Security-Policy-Report-Only`, do a full flight, search and
+   popup with DevTools open, and confirm no violations; then rename the header to
+   `Content-Security-Policy` in `vercel.json` (security §3).
+5. Production on `fireflybc.kcaparas.dev` with the URL-restricted prod token; dev token rotated
+   and the rotation logged in `docs/security.md` §2.
+6. The owner records a short flight (Vancouver → Summerland, open a fire near Kelowna) from
+   production and adds it to the README.
+7. The owner picks a license (or states "all rights reserved") and adds `LICENSE`.
+
+**Done when:** every item above is done and CI is green on `main`.
+
 ## Definition of done for the MVP
 
 - All ADR decisions implemented as written or superseded by a new ADR.
@@ -108,7 +128,11 @@ be reproduced manually, Lighthouse PWA installable, CSP enforced with no console
 - `docs/security.md` checklist satisfied; prod token restricted; dev token rotated at launch.
 - Owner can fly from Vancouver to Summerland, see the fires near Kelowna, open one, and reach BCWS.
 
-## Explicitly after MVP
+## Out of scope (ADR 026)
 
-Offline tiers (ADR 006 options 1–3), fire perimeters, "show fires that are out" toggle if cut,
-gamepad, geolocation spawn, monitoring (ADR 017), proxy/cache for BCWS, multi-language.
+FireflyBC is a portfolio piece and its feature scope is frozen. These were once planned for after
+the MVP and are now out of scope: offline tiers (ADR 006 options 1–3), gamepad, geolocation spawn,
+monitoring (ADR 017), proxy/cache for BCWS, multi-language. These were considered in the
+2026-11-07 product review and rejected: saved places, "view from here", "since your last visit",
+an evacuation orders and alerts overlay, shareable 3D views, a road-trip check, push alerts.
+Reopening any of them needs a new ADR that supersedes ADR 026.
