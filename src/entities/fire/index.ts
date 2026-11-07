@@ -1,4 +1,4 @@
-// Public API of the fire entity: the BCWS feed API, normalised fires, the Out filter, selection and status display.
+// Public API of the fire entity: the BCWS feed, normalised fires, the Out filter, selection, proximity and status.
 export { fireApi, useGetFirePerimetersQuery } from './api/fire.api';
 export type { FireFeedQueryArgs } from './api/fire.api';
 export { useFireFeedQuery } from './api/use-fire-feed-query';
@@ -12,6 +12,7 @@ export { computeFlameFlicker } from './lib/compute-flame-flicker';
 export type { FlameFlicker } from './lib/compute-flame-flicker';
 export { computeFlameHeight } from './lib/compute-flame-height';
 export { findNearbyFires } from './lib/find-nearby-fires';
+export { findNearestActiveFire } from './lib/find-nearest-active-fire';
 export { formatFireSize } from './lib/format-fire-size';
 export { sortFiresByDistance } from './lib/sort-fires-by-distance';
 export {
@@ -26,6 +27,7 @@ export type {
   FirePerimeter,
   FireStatus,
   NearbyFires,
+  NearestFire,
   RankedFire,
 } from './model/fire.types';
 export {
