@@ -1,5 +1,5 @@
 // The disclaimer under every fire's details: informational, BCWS open data, fetch time (behaviour §7).
-import { formatLocalDateTime } from '../lib/format-local-date-time';
+import { formatLocalDateTime } from '@/shared/lib/format';
 
 export type FireSourceNoteProps = { fetchedAtMs: number };
 
