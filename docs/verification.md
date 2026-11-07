@@ -2,8 +2,8 @@
 
 Every row of `docs/behaviour.md` §10 with what checks it (ADR 026, roadmap Phase 7). Unit test
 paths are under `src/`; Playwright specs are under `e2e/`. "Manual" rows are checked by the owner
-on production, then logged at the bottom of this file. Mapped on 2026-11-07 against 514 unit tests
-in 141 files and 6 Playwright specs.
+on production, then logged at the bottom of this file. Mapped on 2026-11-07 against 555 unit tests
+in 149 files and 7 Playwright specs.
 
 ## Environment
 
@@ -77,10 +77,30 @@ in 141 files and 6 Playwright specs.
 | `FIRE_URL` host not allow-listed | `entities/fire/lib/parse-incident-url.test.ts`, `widgets/fire-popup/ui/fire-details-card.test.tsx` | Not needed. |
 | Token missing at build | `shared/config/env.test.ts`; `scripts/convention-checks/find-secrets.test.ts` | Not needed. |
 
+## Location alerts (ADR 027)
+
+| Case | Automated test | Manual check |
+|---|---|---|
+| User denies location (or the browser blocks it) | `widgets/location-alert/ui/location-alert.test.tsx`, `features/track-user-location/model/use-user-location-tracking.test.tsx`; `e2e/location-alert.spec.ts` | **Needed.** On production, press Location alerts and block the prompt: the message shows. Then allow it in site settings and press again: the alert or nothing shows, never the message (proves `Permissions-Policy: geolocation=(self)` is live). |
+| No Geolocation API, or no position before the first fix | `entities/user-location/api/track-user-position.test.ts`, `features/track-user-location/model/use-user-location-tracking.test.tsx`, `widgets/location-alert/lib/read-location-alert-view.test.ts` | Not needed. |
+| Position error after a fix | `entities/user-location/model/user-location.slice.test.ts` | Not needed. |
+| Browser returns an invalid position | `entities/user-location/api/track-user-position.test.ts`, `entities/user-location/model/user-position.schema.test.ts` | Not needed. |
+| Fire feed loading with no data yet | `widgets/location-alert/lib/read-location-alert-view.test.ts` | Not needed. |
+| Fire feed failed with no data | `widgets/location-alert/lib/read-location-alert-view.test.ts` | Not needed. |
+| Fire feed stale (keeps last data) | `widgets/location-alert/lib/read-location-alert-view.test.ts` (alerts from the cached snapshot with its fetch time) | Not needed. |
+| Nearest fire is `Out` | `entities/fire/lib/find-nearest-active-fire.test.ts`, `widgets/location-alert/lib/read-location-alert-view.test.ts` | Not needed. |
+| "Show fires that are out" toggle on | `entities/fire/lib/find-nearest-active-fire.test.ts` (`Out` is skipped whatever the feed holds) | Not needed. |
+| No active fire within 50 km, or none at all | `widgets/location-alert/lib/read-location-alert-view.test.ts`, `widgets/location-alert/ui/location-alert.test.tsx` | Not needed. |
+| Nearest distance crosses a limit (32 km → 28 km) | `widgets/location-alert/lib/get-proximity-tier.test.ts`, `widgets/location-alert/lib/read-location-alert-view.test.ts`, `widgets/location-alert/ui/location-alert.test.tsx`; `e2e/location-alert.spec.ts` (4.2 km → 20.3 km on a move) | Not needed. |
+| User outside BC | — (same haversine path; nothing checks the user against the BC box) | Optional: set a DevTools sensor location in Alberta near the border; distances still show. |
+| Location alerts turned off | `entities/user-location/model/user-location.slice.test.ts`, `features/track-user-location/model/use-user-location-tracking.test.tsx`, `widgets/location-alert/ui/location-alert.test.tsx` | Not needed. |
+| Phone rotated | — (the watch lives in `pages/map-page`, which rotation does not remount) | **Needed.** On a phone, turn alerts on, rotate twice. The alert stays and "Finding your location…" does not come back. |
+| Page reload or close | — | **Needed.** With alerts on, check DevTools: Local Storage has no position, and no request URL or body carries your coordinates. Reload: alerts are off. |
+
 ## Summary
 
-42 rows: 22 fully covered by automated tests, 17 need a manual check, 3 are review only or
-optional (Mapbox 429, search result outside BC, altitude ceiling display).
+57 rows: 33 fully covered by automated tests, 20 need a manual check, 4 are review only or
+optional (Mapbox 429, search result outside BC, altitude ceiling display, user outside BC).
 
 ## Manual check log
 

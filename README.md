@@ -23,6 +23,11 @@ from the air, live from BC Wildfire Service open data.
 - **Live wildfires:** every active BCWS fire is drawn on the terrain as a scorched footprint (the
   mapped perimeter, or the reported area) with a flame sized by status. The fire panel lists the
   fires by distance from the drone, with a compass arrow to each one, and opens their details.
+- **Location alerts:** turn them on and FireflyBC finds the active fire nearest to you and shows
+  one of three tiers: **Ready to leave** (under 10 km), **Prepare** (under 30 km) or **Aware**
+  (under 50 km), with what to do and links to the official evacuation information. Your
+  position stays in the browser's memory: never stored, never sent anywhere. It is an early
+  warning, not an evacuation order ([ADR 027](docs/adr/027-location-proximity-alerts.md)).
 - **Cockpit:** heading-up compass with fire blips, place name, speed, climb rate and altitude.
   Separate layouts for desktop, phone landscape and phone portrait.
 - **Installable** as a PWA.
@@ -46,9 +51,12 @@ from the air, live from BC Wildfire Service open data.
   breaking the app ([ADR 003](docs/adr/003-wildfire-data-bcws-arcgis.md)).
 - **Cost control without a backend.** Each Mapbox API has a per-minute and per-day request
   budget in the browser ([ADR 025](docs/adr/025-mapbox-request-budgets.md)).
+- **Privacy by construction.** The user's position comes from `watchPosition` only after they
+  opt in, is validated with zod, lives in session memory and is never persisted, sent or logged;
+  the response header allows geolocation for this origin only.
 - **Conventions as code.** Feature-Sliced Design boundaries, naming, one responsibility per file,
   and comment rules are enforced by ESLint, 12 custom rules with their own tests, and convention
-  scripts. 514 unit tests (the pure simulation, routing and data modules are at about 99 % line
+  scripts. 555 unit tests (the pure simulation, routing and data modules are at about 99 % line
   coverage), plus a Playwright suite running WebGL on SwiftShader in CI.
 
 ## How it was built
@@ -69,7 +77,10 @@ FireflyBC set out to show where BC's wildfires are. A product review found that 
 Wildfire Service app already does that, with evacuation orders, fire bans and notifications, and
 that a virtual drone adds no new information. The project is therefore finished as a portfolio
 piece with its features frozen; the reasoning and the alternatives are in
-[ADR 026](docs/adr/026-portfolio-scope.md).
+[ADR 026](docs/adr/026-portfolio-scope.md). One feature was added after that review: location
+alerts, which answer "how close is the nearest fire to me?" for the user's own position
+([ADR 027](docs/adr/027-location-proximity-alerts.md)). They measure straight-line distance to
+the fire's reported point, not its edge, and say so.
 
 ## Stack
 
