@@ -2,7 +2,9 @@
 
 **FireflyBC** (`https://fireflybc.kcaparas.dev`) is a browser app for flying a 3D drone over a
 Mapbox map of British Columbia and seeing where active wildfires are, without visiting the BC
-Wildfire Service site. **This is an MVP.** The name is "FireflyBC" in prose and UI,
+Wildfire Service site. **This is a portfolio piece and its features are frozen (ADR 026):** only
+fixes, performance, accessibility, security, docs and dependency updates without a new ADR. The
+name is "FireflyBC" in prose and UI,
 `fireflybc` in code, keys, hostnames and package names. It is an independent project, not
 affiliated with the BC Wildfire Service; never present it as official.
 
@@ -16,6 +18,7 @@ owner changes them. Read in this order:
 | `docs/behaviour.md` | Exactly what the app does: launch, modes, controls, search-to-fly, fires, every edge case |
 | `docs/security.md` | Threat model, token policy, headers/CSP, validation, supply chain |
 | `docs/roadmap.md` | Delivery order, spikes, definition of done |
+| `docs/verification.md` | Which test or manual check covers each edge case in behaviour §10 |
 
 ## Stack (fixed by ADRs)
 
