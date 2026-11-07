@@ -1,6 +1,6 @@
 # ADR 026 — FireflyBC is a portfolio piece; the feature scope is frozen
 
-Status: Proposed (2026-11-07) — awaiting owner review
+Status: Proposed (2026-11-07) — awaiting owner review. Amended by ADR 027 (location alerts).
 
 ## Context
 

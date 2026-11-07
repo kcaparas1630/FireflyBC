@@ -20,6 +20,8 @@ What the app does, step by step, and what happens at every edge. Numbers marked 
 7. Frame loop starts. The chase cam snaps to the drone (no animation on launch).
 8. Online check: if `navigator.onLine` is false, a persistent banner says "Offline — the map and
    search need a connection"; fires show whatever is cached in memory (nothing on cold start).
+9. Location alerts start off. Nothing asks for the user's location until they turn the alerts on
+   (§12).
 
 ## 2. Modes
 
@@ -96,8 +98,9 @@ camera pose. Only the phone landscape cockpit does this (§4.2); elsewhere the p
 ### 4.1 Cockpit layout (ADR 021)
 
 - **Top left:** FireflyBC wordmark, mode badge ("Ready", "Free flight", …), HUD notes.
-- **Top centre:** search. **Right:** fire panel (§7.1) with the selected fire's details card
-  under it. **Bottom centre:** route banner.
+- **Top centre:** search, with the offline banner and the location alert (§12) under it.
+  **Top right:** the Location alerts button, then the install button. **Right:** fire panel
+  (§7.1) with the selected fire's details card under it. **Bottom centre:** route banner.
 - **Lower left, nav cluster:**
   - Compass rose, heading-up: the ring turns so the drone's heading is at the top, with N (red),
     E, S, W and 30° ticks. A fixed lubber line marks the heading, and the heading in degrees
@@ -118,14 +121,16 @@ A phone is a device whose primary pointer is coarse and whose short side is unde
 and mouse/keyboard devices always get the cockpit of §4.1. The layout follows rotation live.
 
 - **Portrait:** everything is collapsed. Top row: wordmark with mode badge, a search icon button
-  (tapping it opens the search box; it collapses again when it loses focus while empty) and the
-  install icon. The fire panel shows only its "Active fires (N)" header; the nav cluster shows only
+  (tapping it opens the search box; it collapses again when it loses focus while empty), the
+  Location alerts icon button and the install icon. The offline banner and the location alert
+  (§12) sit under the top row. The fire panel shows only its "Active fires (N)" header; the nav cluster shows only
   a small compass; the touch controls stay at the bottom. A notice at the centre says
   "Turn your phone sideways — FireflyBC works best in landscape" with **Continue in portrait**,
   which hides it for the rest of the session. Rotating to landscape removes it.
-- **Landscape:** the §4.1 cockpit at a smaller size. Top: wordmark, search, install icon and the
-  fire panel, which starts **collapsed** to its "Active fires (N)" header so the flight area uses
-  the full width. Opening it (or selecting a fire) turns the right side into a full-height
+- **Landscape:** the §4.1 cockpit at a smaller size. Top: wordmark, search, the Location alerts
+  and install icons, and the fire panel. The offline banner and the location alert (§12) sit at
+  the top of the flight area. The fire panel starts **collapsed** to its "Active fires (N)"
+  header so the flight area uses the full width. Opening it (or selecting a fire) turns the right side into a full-height
   column, narrower than on desktop, with the details card under the list; collapsing it gives the
   width back. Everything else sits in **one bottom bar**, so the middle of the screen stays clear:
   the move stick in the bottom-left corner, the compass and a compact place/telemetry card (no
@@ -269,6 +274,8 @@ status)". Any input or Dismiss → `freeFlight`.
 - `localStorage['fireflybc.quota.<api>.v1'] = { v: 1, day: 'YYYY-MM-DD', count }`: the Mapbox
   requests sent from this browser today, one key per budgeted API (§11).
 - Invalid or outside-BC values are discarded with a `console.warn` via `reportError`.
+- Nothing about the user's location is stored: not the position, not whether location alerts
+  were on (§12.2).
 
 ## 9. Tunables (`src/shared/config/`)
 
@@ -285,6 +292,7 @@ status)". Any input or Dismiss → `freeFlight`.
 | `FIRE_POLL_MS` | 600 000 | `fire-feed.ts` |
 | `FIRE_STALE_WARN_MS` / `FIRE_STALE_ERROR_MS` | 1 800 000 / 7 200 000 | `fire-feed.ts` |
 | `MAPBOX_REQUEST_LIMITS` (per minute / per day) | see §11 | `mapbox-request-limits.ts` |
+| `LOCATION_ALERT` tier limits / position max age | 10 / 30 / 50 km, 60 s | `location-alert.ts` |
 
 ## 10. Edge cases and required behaviour
 
@@ -354,6 +362,25 @@ status)". Any input or Dismiss → `freeFlight`.
 | `FIRE_URL` host not allow-listed | Link omitted; fire number shown as text |
 | Token missing at build | Build fails (`env.ts` validation at startup, `check-no-secrets` prevents committing one) |
 
+### Location alerts (§12)
+| Case | Behaviour |
+|---|---|
+| User denies location (or the browser blocks it) | No alert; "Location alerts need your location…" message with a close button; everything else works |
+| No Geolocation API, or no position before the first fix | No alert; "Your location isn't available…" message with a close button |
+| Position error after a fix | Keep the last position; the watch continues |
+| Browser returns an invalid position (non-finite or out of range) | Ignored with a warning that contains no coordinates |
+| Fire feed loading with no data yet | "Checking for fires near you…" |
+| Fire feed failed with no data | "Location alerts can't check fires right now: fire data is unavailable." |
+| Fire feed stale (keeps last data) | Alert continues from the last data; the source note shows the fetch time |
+| Nearest fire is `Out` | Ignored; the nearest fire that is not `Out` counts |
+| "Show fires that are out" toggle on | No effect on the alert |
+| No active fire within 50 km, or none at all | No alert; the pressed Location alerts button shows alerts are on |
+| Nearest distance crosses a limit (e.g. 32 km → 28 km) | Tier and action change in place (Aware → Prepare) |
+| User outside BC | Same rules; distances to BC fires still apply |
+| Location alerts turned off | Watch stopped, position forgotten, alert and messages hidden |
+| Phone rotated | Alert and tracking continue; the position is kept; the alert's details close |
+| Page reload or close | Position forgotten; alerts start off again |
+
 ## 11. Mapbox request budgets (ADR 025)
 
 Every Mapbox API call the app makes itself is counted against a budget before it is sent: a
@@ -369,3 +396,79 @@ and GL JS tile requests are not budgeted: the map is created once per page load.
 
 All numbers are *(tunable)*. A batch (DEM tiles) is allowed only if all of it fits; it never
 spends part of a budget.
+
+## 12. Location alerts (ADR 027)
+
+An early warning about the active fire nearest to the user's own location. It is never an
+evacuation authority.
+
+### 12.1 Turning it on and off
+
+- Off at launch. A **Location alerts** toggle button (location icon; icon only on phones) sits
+  before the install button. It shows as pressed while alerts are on. Pressing it turns alerts on
+  for this session; pressing it again turns them off.
+- Turning on starts `navigator.geolocation.watchPosition` with low accuracy, accepting positions
+  up to 60 s old *(tunable)*. The browser asks for permission the first time and remembers the
+  answer; FireflyBC does not.
+- While waiting for the first position, the banner reads "Finding your location…".
+- Permission denied (or blocked by the browser): "Location alerts need your location. Allow
+  location for this site in your browser settings, then turn them on again." with a close button.
+  No alert; the rest of the app is unaffected.
+- No Geolocation API, or a position error before the first fix: "Your location isn't available
+  in this browser, so location alerts are off." with a close button.
+- A position error after a fix keeps the last position; the watch continues.
+- Turning off stops the watch and forgets the position. Closing a message turns alerts off.
+
+### 12.2 Privacy
+
+- The position is held in memory (Redux) for this session only. FireflyBC never writes it to
+  storage, never sends it to any server, never puts it in a URL and never logs it. A reload
+  forgets it.
+- Each position from the browser is validated with zod (finite, longitude −180…180, latitude
+  −90…90). An invalid one is ignored with a warning that contains no coordinates.
+- The browser's own location service is outside the app's control.
+
+### 12.3 Nearest fire and tier
+
+On every position update and every fire feed response:
+
+```
+active  = fires whose status is not Out (the "Show fires that are out" toggle has no effect)
+nearest = the active fire with the smallest haversine distance from the user to its reported point
+tier    = distance < 10 km -> Ready to leave
+          distance < 30 km -> Prepare
+          distance < 50 km -> Aware
+          otherwise        -> no alert
+```
+
+The limits are *(tunable)*. Exactly 10 km is Prepare; exactly 50 km is no alert. The fire feed's
+fetching and polling (§7) are unchanged; the alert reads the same feed.
+
+### 12.4 The alert
+
+- Placed under the search with the offline banner (§4.1, §4.2), as a panel card.
+- Content: the tier name; "Nearest active fire: {name}, {d.d} km from you"; the tier's action:
+
+| Tier | Colour | Action |
+|---|---|---|
+| Ready to leave | red | Check evacuation orders now and be ready to go. |
+| Prepare | amber | Pack a go-bag, check official alerts and keep watching. |
+| Aware | neutral | Nothing to do, just monitoring. |
+
+- Ready to leave is announced assertively (`role="alert"`); the others politely.
+- Actions: **Show fire** selects the fire (the same as clicking it, §7); "Evacuation orders and
+  alerts ↗" opens EmergencyInfoBC; "BC Wildfire Service map ↗" opens the BCWS map. Both links
+  open in a new tab with `rel="noopener noreferrer"`.
+- Note under it, in the fire popup's style: "Early warning only: straight-line distance to the
+  fire's reported location, not its edge. Not an evacuation order; orders and alerts come from
+  local authorities and First Nations. Source: BC Wildfire Service open data, fetched {time}.
+  For emergencies follow EmergencyInfoBC."
+- The alert has no dismiss. It changes in place when the tier changes, and disappears only when
+  no active fire is within 50 km or alerts are turned off.
+- Feed states: no data yet → "Checking for fires near you…"; failed with no data → "Location
+  alerts can't check fires right now: fire data is unavailable."; stale → keeps alerting from the
+  last data.
+- Phones: a narrower card with smaller text showing the tier, the fire and distance, the action
+  and "Early warning only. Not an evacuation order." A **Show alert details** button opens Show
+  fire, the links and the full note; rotating the phone closes them again. If the banners would
+  push the flight controls off-screen, the banner area scrolls instead.

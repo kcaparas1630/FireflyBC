@@ -31,7 +31,8 @@ without new information. Status values: `Accepted`, `Superseded by NNN`, `Deprec
 | [023](023-fire-scene-perimeters-flames-canopy.md) | Fire scene: scorched perimeters, status-scaled flames, select-then-fly; Canopy theme (amends 015) | Proposed |
 | [024](024-mobile-orientation-layouts.md) | Mobile layouts: collapsed portrait with a rotate notice, compact landscape cockpit (amends 021) | Proposed |
 | [025](025-mapbox-request-budgets.md) | Client-side request budgets for the Mapbox APIs: per-minute window and per-browser daily cap | Proposed |
-| [026](026-portfolio-scope.md) | FireflyBC is a portfolio piece; the feature scope is frozen | Proposed |
+| [026](026-portfolio-scope.md) | FireflyBC is a portfolio piece; the feature scope is frozen (amended by 027) | Proposed |
+| [027](027-location-proximity-alerts.md) | Location alerts: nearest active fire to the user in three tiers, in-app only, location never stored or sent (amends 026) | Proposed |
 
 
 ## Writing a new ADR
