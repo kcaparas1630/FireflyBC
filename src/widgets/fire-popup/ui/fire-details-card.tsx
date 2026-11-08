@@ -2,9 +2,9 @@
 import { ExternalLink, X } from 'lucide-react';
 
 import { type Fire, FireStatusBadge, formatFireSize } from '@/entities/fire';
+import { formatLocalDateTime } from '@/shared/lib/format';
 import { Button, Card, cn } from '@/shared/ui';
 
-import { formatLocalDateTime } from '../lib/format-local-date-time';
 import { FireSourceNote } from './fire-source-note';
 
 export type FireDetailsCardProps = {

@@ -6,13 +6,15 @@ import { useAppSelector } from '@/shared/lib/redux';
 import { cn } from '@/shared/ui';
 import { FirePanel } from '@/widgets/fire-panel';
 import { FirePopup } from '@/widgets/fire-popup';
-import { FlightHud, NavCluster, OfflineBanner, PwaControls } from '@/widgets/hud';
+import { FlightHud, NavCluster, PwaControls } from '@/widgets/hud';
 import { Joystick } from '@/widgets/joystick';
+import { LocationAlertsButton } from '@/widgets/location-alert';
 import type { CameraPadding, MapStatus } from '@/widgets/map-view';
 import { RouteBanner } from '@/widgets/route-banner';
 import { SearchBar } from '@/widgets/search-bar';
 
 import { useFlightAreaPadding } from '../model/use-flight-area-padding';
+import { CockpitBanners } from './cockpit-banners';
 
 export type LandscapeCockpitProps = {
   mapboxToken: string;
@@ -43,7 +45,8 @@ export function LandscapeCockpit(props: LandscapeCockpitProps) {
         <div className="pointer-events-auto flex min-w-0 flex-1 justify-center">
           <SearchBar mapboxToken={mapboxToken} />
         </div>
-        <div className="pointer-events-auto shrink-0 empty:hidden">
+        <div className="pointer-events-auto flex shrink-0 gap-2">
+          <LocationAlertsButton isCompact />
           <PwaControls isCompact />
         </div>
       </div>
@@ -62,11 +65,7 @@ export function LandscapeCockpit(props: LandscapeCockpitProps) {
           isFireColumnTall ? 'col-[1/2]' : 'col-[1/3]',
         )}
       >
-        <div className="flex justify-center">
-          <div className="pointer-events-auto">
-            <OfflineBanner />
-          </div>
-        </div>
+        <CockpitBanners isCompact />
         <div className="flex min-h-0 flex-1 items-end justify-center">
           <div className="pointer-events-auto min-w-0">
             <RouteBanner />

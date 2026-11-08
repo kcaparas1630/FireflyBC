@@ -35,4 +35,6 @@ export type FirePerimeter = {
 
 export type RankedFire = { fire: Fire; distanceM: number | null; bearingRad: number | null };
 
-export type NearbyFires = { count: number; nearest: { fire: Fire; distanceM: number } | null };
+export type NearestFire = { fire: Fire; distanceM: number };
+
+export type NearbyFires = { count: number; nearest: NearestFire | null };

@@ -1,8 +1,8 @@
 # Security
 
-A static SPA with no backend and no user data. The assets at risk are: our Mapbox bill, the user's
-browser (XSS/clickjacking), the integrity of what we tell people about wildfires, and our build
-pipeline.
+A static SPA with no backend and no stored user data. The assets at risk are: our Mapbox bill, the
+user's browser (XSS/clickjacking), the user's location while location alerts are on (ADR 027),
+the integrity of what we tell people about wildfires, and our build pipeline.
 
 ## 1. Threat model
 
@@ -19,6 +19,8 @@ pipeline.
 | Stale service worker serving an old bundle | Broken app after token rotation | `autoUpdate`, reload prompt on 401 |
 | Misinformation (user treats data as live/official) | Safety | Timestamp + source + disclaimer on every fire surface; link to BCWS |
 | Local storage tampering | Weird spawn | Schema-validated, bbox-checked, non-sensitive only |
+| User's location leaked (stored, sent, logged) | Privacy | Opt-in per session; memory only (Redux), never written to storage, sent, put in a URL or logged; cleared when alerts are turned off (ADR 027, behaviour §12.2) |
+| Location alert read as an evacuation order | Safety | States its measure, "not an evacuation order", links to EmergencyInfoBC and the BCWS map, source note with fetch time (ADR 027) |
 
 Out of scope for MVP: authentication, PII, server-side anything.
 
@@ -63,7 +65,7 @@ Content-Security-Policy:
 Referrer-Policy: strict-origin-when-cross-origin
 X-Content-Type-Options: nosniff
 X-Frame-Options: DENY
-Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=(), usb=(), interest-cohort=()
+Permissions-Policy: geolocation=(self), camera=(), microphone=(), payment=(), usb=(), interest-cohort=()
 Cross-Origin-Opener-Policy: same-origin
 Strict-Transport-Security: max-age=63072000; includeSubDomains
 ```
@@ -76,6 +78,7 @@ Why each unusual line:
   option if we ever drop `blob:`.
 - `events.mapbox.com` — billing events that cannot be disabled.
 - `Referrer-Policy` must send the origin, or the URL-restricted token returns 403.
+- `geolocation=(self)` — location alerts (ADR 027) need it; frames and other origins stay blocked.
 - No `report-uri`/`report-to` in MVP (no monitoring, ADR 017).
 
 ## 4. Input validation (code-convention 008)
@@ -94,6 +97,8 @@ Why each unusual line:
   status, `content-type: image/*`, size ≤ 2 MB and 10 s timeout; the bitmap must be square
   (256 or 512 px); decoded heights outside −500…9000 m are treated as missing.
 - `localStorage`: versioned schema; anything failing is discarded.
+- Geolocation: each position's longitude and latitude are checked with zod (finite, in range);
+  an invalid position is ignored with a warning that contains no coordinates.
 - Rendering: React text nodes only; `react/no-danger` lint; Mapbox `Popup` is not used.
 - External links: `target="_blank" rel="noopener noreferrer"`.
 
@@ -118,7 +123,10 @@ Why each unusual line:
 
 ## 7. Privacy
 
-- No geolocation, no accounts, no analytics, no cookies.
+- No accounts, no analytics, no cookies.
+- Geolocation only after the user turns on location alerts, for that session (ADR 027). The
+  position stays in memory; it is never stored, sent to any server (Mapbox, BCWS or other), put in
+  a URL or logged. The reverse geocode and search bias use the drone's position, never the user's.
 - Mapbox collects anonymised usage events (cannot be disabled); the attribution control stays
   visible so users can reach Mapbox's telemetry opt-out. `performanceMetricsCollection: false`.
 - Search queries go to Mapbox under their privacy policy; recents are stored locally only.
