@@ -98,7 +98,10 @@ camera pose. Only the phone landscape cockpit does this (§4.2); elsewhere the p
 ### 4.1 Cockpit layout (ADR 021)
 
 - **Top left:** FireflyBC wordmark, mode badge ("Ready", "Free flight", …), HUD notes.
-- **Top centre:** search, with the offline banner and the location alert (§12) under it.
+- **Left, under the wordmark:** the location alert (§12), as wide as the fire panel. It never
+  moves the fire panel; if the window is too short it scrolls. Below 640 px it stacks above the
+  fire panel.
+- **Top centre:** search, with the offline banner under it.
   **Top right:** the Location alerts button, then the install button. **Right:** fire panel
   (§7.1) with the selected fire's details card under it. **Bottom centre:** route banner.
 - **Lower left, nav cluster:**
@@ -122,17 +125,19 @@ and mouse/keyboard devices always get the cockpit of §4.1. The layout follows r
 
 - **Portrait:** everything is collapsed. Top row: wordmark with mode badge, a search icon button
   (tapping it opens the search box; it collapses again when it loses focus while empty), the
-  Location alerts icon button and the install icon. The offline banner and the location alert
-  (§12) sit under the top row. The fire panel shows only its "Active fires (N)" header; the nav cluster shows only
-  a small compass; the touch controls stay at the bottom. A notice at the centre says
-  "Turn your phone sideways — FireflyBC works best in landscape" with **Continue in portrait**,
+  Location alerts icon button and the install icon. Under the top row: the offline banner
+  (centred), then the location alert (§12) across the width, then the fire panel, which shows
+  only its "Active fires (N)" header; the nav cluster shows only a small compass; the touch
+  controls stay at the bottom. A notice at the centre says "Turn your phone sideways —
+  FireflyBC works best in landscape" with **Continue in portrait**,
   which hides it for the rest of the session. Rotating to landscape removes it.
 - **Landscape:** the §4.1 cockpit at a smaller size. Top: wordmark, search, the Location alerts
-  and install icons, and the fire panel. The offline banner and the location alert (§12) sit at
-  the top of the flight area. The fire panel starts **collapsed** to its "Active fires (N)"
-  header so the flight area uses the full width. Opening it (or selecting a fire) turns the right side into a full-height
-  column, narrower than on desktop, with the details card under the list; collapsing it gives the
-  width back. Everything else sits in **one bottom bar**, so the middle of the screen stays clear:
+  and install icons, and the fire panel. At the top of the flight area: the offline banner
+  centred and the location alert (§12) on the left, under the wordmark. The fire panel starts
+  **collapsed** to its "Active fires (N)" header so the flight area uses the full width. Opening
+  it (or selecting a fire) turns the right side into a full-height column, narrower than on
+  desktop, with the details card under the list; collapsing it gives the width back. Everything
+  else sits in **one bottom bar**, so the middle of the screen stays clear:
   the move stick in the bottom-left corner, the compass and a compact place/telemetry card (no
   coordinates) centred between the sticks, then Boost and the climb slider at the bottom right of
   the flight area. When the bar is too narrow for the card (small phone with the fire list open),
@@ -446,7 +451,7 @@ fetching and polling (§7) are unchanged; the alert reads the same feed.
 
 ### 12.4 The alert
 
-- Placed under the search with the offline banner (§4.1, §4.2), as a panel card.
+- Placed on the left under the wordmark, as a panel card (§4.1, §4.2).
 - Content: the tier name; "Nearest active fire: {name}, {d.d} km from you"; the tier's action:
 
 | Tier | Colour | Action |
